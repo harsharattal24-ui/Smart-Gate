@@ -50,8 +50,14 @@ function success(position){
     .then(data => {
 
         alert(
-            "Gate Status: " + data.status
-        );
+
+    "Gate Status: " + data.status +
+
+    "\nDistance From Gate: " +
+
+    data.distance + " meters"
+
+);
 
         location.reload();
 

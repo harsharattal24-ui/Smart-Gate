@@ -11,11 +11,24 @@ DATA_FILE = "database/data.json"
 users = []
 
 # ---------------------------------
-# RAILWAY GATE COORDINATES
+# MULTIPLE GATES
 # ---------------------------------
 
-GATE_LAT = 15.1514586
-GATE_LON = 76.8938312
+gates = [
+
+    {
+        "name": "Gate A",
+        "lat": 12.9716,
+        "lon": 77.5946
+    },
+
+    {
+        "name": "Gate B",
+        "lat": 12.9725,
+        "lon": 77.5955
+    }
+
+]
 
 # ---------------------------------
 # LOAD DATA
@@ -36,7 +49,7 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 # ---------------------------------
-# CALCULATE DISTANCE
+# DISTANCE CALCULATION
 # ---------------------------------
 
 def calculate_distance(lat1, lon1, lat2, lon2):
@@ -54,6 +67,31 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     return R * c * 1000
+
+# ---------------------------------
+# FIND NEAREST GATE
+# ---------------------------------
+
+def find_nearest_gate(user_lat, user_lon):
+
+    nearest_gate = None
+    min_distance = 999999
+
+    for gate in gates:
+
+        distance = calculate_distance(
+            user_lat,
+            user_lon,
+            gate["lat"],
+            gate["lon"]
+        )
+
+        if distance < min_distance:
+
+            min_distance = distance
+            nearest_gate = gate
+
+    return nearest_gate, min_distance
 
 # ---------------------------------
 # HOME PAGE
@@ -84,22 +122,25 @@ def location():
 
     users.append(user)
 
+    nearest_gate, current_distance = find_nearest_gate(
+        user["lat"],
+        user["lon"]
+    )
+
     waiting_users = 0
 
     for u in users:
 
-        distance = calculate_distance(
+        gate, distance = find_nearest_gate(
             u["lat"],
-            u["lon"],
-            GATE_LAT,
-            GATE_LON
+            u["lon"]
         )
 
-        # User near gate
         if distance < 100:
 
-            # User moving slowly
-            if u["speed"] < 2:
+            speed = u.get("speed")
+
+            if speed is None or speed < 2:
 
                 waiting_users += 1
 
@@ -114,21 +155,15 @@ def location():
 
     save_data(data)
 
-    # Current user's distance from gate
-    current_distance = calculate_distance(
-        user["lat"],
-        user["lon"],
-        GATE_LAT,
-        GATE_LON
-    )
-
     return jsonify({
 
         "message": "Location received",
 
         "status": data["status"],
 
-        "distance": round(current_distance, 2)
+        "distance": round(current_distance, 2),
+
+        "gate": nearest_gate["name"]
 
     })
 

@@ -3,225 +3,157 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-    <title>Smart Railway Gate</title>
+<title>Smart Railway Gates</title>
 
-    <style>
+<style>
 
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-            font-family:Arial;
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+}
 
-        body{
+body{
 
-            background:#0f172a;
+    background:#0f172a;
 
-            color:white;
+    color:white;
 
-            display:flex;
+    padding:20px;
+}
 
-            justify-content:center;
+h1{
 
-            align-items:center;
+    text-align:center;
 
-            min-height:100vh;
+    margin-bottom:25px;
 
-            padding:20px;
-        }
+    color:#38bdf8;
+}
 
-        .card{
+.container{
 
-            background:#1e293b;
+    max-width:500px;
 
-            width:100%;
+    margin:auto;
+}
 
-            max-width:420px;
+.card{
 
-            border-radius:20px;
+    background:#1e293b;
 
-            padding:25px;
+    padding:20px;
 
-            text-align:center;
+    border-radius:20px;
 
-            box-shadow:0 0 20px rgba(0,0,0,0.4);
-        }
+    margin-bottom:20px;
+}
 
-        h1{
+.status{
 
-            color:#38bdf8;
+    font-size:32px;
 
-            margin-bottom:20px;
-        }
+    font-weight:bold;
 
-        .status{
+    margin:15px 0;
+}
 
-            font-size:35px;
+.open{
+    color:#22c55e;
+}
 
-            font-weight:bold;
+.closed{
+    color:#ef4444;
+}
 
-            margin:20px 0;
-        }
+.unknown{
+    color:#facc15;
+}
 
-        .open{
-            color:#22c55e;
-        }
+.box{
 
-        .closed{
-            color:#ef4444;
-        }
+    background:#334155;
 
-        .unknown{
-            color:#facc15;
-        }
+    padding:12px;
 
-        .box{
+    border-radius:12px;
 
-            background:#334155;
+    margin-top:10px;
+}
 
-            padding:15px;
+.label{
 
-            border-radius:12px;
+    color:#94a3b8;
 
-            margin-top:15px;
-        }
+    font-size:14px;
+}
 
-        .label{
+.value{
 
-            color:#94a3b8;
+    font-size:20px;
 
-            font-size:14px;
+    font-weight:bold;
 
-            margin-bottom:5px;
-        }
+    margin-top:5px;
+}
 
-        .value{
+button{
 
-            font-size:22px;
+    width:100%;
 
-            font-weight:bold;
-        }
+    padding:15px;
 
-        button{
+    border:none;
 
-            width:100%;
+    border-radius:12px;
 
-            padding:15px;
+    background:#38bdf8;
 
-            border:none;
+    color:white;
 
-            border-radius:12px;
+    font-size:18px;
 
-            background:#38bdf8;
+    margin-top:20px;
 
-            color:white;
+    cursor:pointer;
+}
 
-            font-size:18px;
-
-            margin-top:25px;
-
-            cursor:pointer;
-        }
-
-    </style>
+</style>
 
 </head>
 
 <body>
 
-<div class="card">
+<h1>🚉 Smart Railway Gates</h1>
 
-    <h1>🚉 Smart Railway Gate</h1>
-
-    <div id="status"
-         class="status unknown">
-
-         UNKNOWN
-
-    </div>
-
-    <div class="box">
-
-        <div class="label">
-            Nearest Gate
-        </div>
-
-        <div id="gate"
-             class="value">
-
-             Loading...
-
-        </div>
-
-    </div>
-
-    <div class="box">
-
-        <div class="label">
-            Distance From Gate
-        </div>
-
-        <div id="distance"
-             class="value">
-
-             Loading...
-
-        </div>
-
-    </div>
-
-    <div class="box">
-
-        <div class="label">
-            Waiting Users
-        </div>
-
-        <div id="waiting"
-             class="value">
-
-             0
-
-        </div>
-
-    </div>
-
-    <div class="box">
-
-        <div class="label">
-            Last Updated
-        </div>
-
-        <div id="updated"
-             class="value">
-
-             --
-
-        </div>
-
-    </div>
-
-    <button onclick="sendLocation()">
-        Share My Location
-    </button>
+<div class="container"
+     id="gatesContainer">
 
 </div>
+
+<button onclick="sendLocation()">
+    Share My Location
+</button>
 
 <script>
 
 function sendLocation(){
 
     navigator.geolocation.getCurrentPosition(
+
         success,
         error,
+
         {
             enableHighAccuracy:true
         }
+
     );
 
 }
@@ -254,45 +186,90 @@ function success(position){
 
     .then(data => {
 
-        let statusElement =
-            document.getElementById("status");
+        let container =
+            document.getElementById(
+                "gatesContainer"
+            );
 
-        statusElement.innerHTML =
-            data.status;
+        container.innerHTML = "";
 
-        if(data.status == "OPEN"){
+        data.forEach(gate => {
 
-            statusElement.className =
-                "status open";
+            let colorClass = "unknown";
 
-        }
-        else if(data.status == "CLOSED"){
+            if(gate.status == "OPEN"){
 
-            statusElement.className =
-                "status closed";
+                colorClass = "open";
 
-        }
-        else{
+            }
+            else if(gate.status == "CLOSED"){
 
-            statusElement.className =
-                "status unknown";
-        }
+                colorClass = "closed";
+            }
 
-        document.getElementById("gate")
-            .innerHTML =
-            data.nearest_gate;
+            container.innerHTML += `
 
-        document.getElementById("distance")
-            .innerHTML =
-            data.distance + " meters";
+            <div class="card">
 
-        document.getElementById("waiting")
-            .innerHTML =
-            data.waiting_users;
+                <h2>${gate.name}</h2>
 
-        document.getElementById("updated")
-            .innerHTML =
-            data.updated;
+                <div class="status ${colorClass}">
+                    ${gate.status}
+                </div>
+
+                <div class="box">
+
+                    <div class="label">
+                        Distance From Gate
+                    </div>
+
+                    <div class="value">
+                        ${gate.distance} meters
+                    </div>
+
+                </div>
+
+                <div class="box">
+
+                    <div class="label">
+                        Waiting Users
+                    </div>
+
+                    <div class="value">
+                        ${gate.waiting_users}
+                    </div>
+
+                </div>
+
+                <div class="box">
+
+                    <div class="label">
+                        Nearby Users
+                    </div>
+
+                    <div class="value">
+                        ${gate.nearby_users}
+                    </div>
+
+                </div>
+
+                <div class="box">
+
+                    <div class="label">
+                        Last Updated
+                    </div>
+
+                    <div class="value">
+                        ${gate.updated}
+                    </div>
+
+                </div>
+
+            </div>
+
+            `;
+
+        });
 
     });
 
@@ -300,11 +277,13 @@ function success(position){
 
 function error(){
 
-    alert("Please allow location access");
+    alert(
+        "Please allow location access"
+    );
 
 }
 
-// AUTO REFRESH EVERY 5 SECONDS
+// AUTO REFRESH
 setInterval(sendLocation, 5000);
 
 </script>

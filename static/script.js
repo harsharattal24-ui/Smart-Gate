@@ -26,6 +26,7 @@ function sendLocation(position) {
     speed: position.coords.speed || 0
 
 })
+    
     })
     .then(response => response.json())
     .then(data => {

@@ -4,7 +4,9 @@ function sendLocation(){
         success,
         error,
         {
-            enableHighAccuracy: true
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
         }
     );
 
@@ -36,14 +38,23 @@ function success(position){
 
     .then(data => {
 
-        document.getElementById("gate").innerHTML =
-            data.gate;
+        document.getElementById("status")
+            .innerHTML = data.status;
 
-        document.getElementById("distance").innerHTML =
+        document.getElementById("gate")
+            .innerHTML = data.nearest_gate;
+
+        document.getElementById("distance")
+            .innerHTML =
             data.distance + " meters";
 
-        document.getElementById("status").innerHTML =
-            data.status;
+        document.getElementById("waiting")
+            .innerHTML =
+            data.waiting_users;
+
+        document.getElementById("updated")
+            .innerHTML =
+            data.updated;
 
     });
 
@@ -55,5 +66,5 @@ function error(){
 
 }
 
-# AUTO REFRESH EVERY 5 SECONDS
+# AUTO REFRESH
 setInterval(sendLocation, 5000);

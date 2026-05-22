@@ -16,7 +16,7 @@
             margin:0;
             padding:0;
             box-sizing:border-box;
-            font-family:Arial, sans-serif;
+            font-family:Arial;
         }
 
         body{
@@ -44,9 +44,9 @@
 
             max-width:420px;
 
-            padding:25px;
-
             border-radius:20px;
+
+            padding:25px;
 
             text-align:center;
 
@@ -55,11 +55,9 @@
 
         h1{
 
-            margin-bottom:20px;
-
             color:#38bdf8;
 
-            font-size:28px;
+            margin-bottom:20px;
         }
 
         .status{
@@ -78,8 +76,9 @@
         .closed{
             color:#ef4444;
         }
+
         .unknown{
-    color:#facc15;
+            color:#facc15;
         }
 
         .box{
@@ -111,8 +110,6 @@
 
         button{
 
-            margin-top:25px;
-
             width:100%;
 
             padding:15px;
@@ -127,23 +124,9 @@
 
             font-size:18px;
 
+            margin-top:25px;
+
             cursor:pointer;
-
-            transition:0.3s;
-        }
-
-        button:hover{
-
-            background:#0ea5e9;
-        }
-
-        .footer{
-
-            margin-top:20px;
-
-            font-size:13px;
-
-            color:#94a3b8;
         }
 
     </style>
@@ -152,178 +135,179 @@
 
 <body>
 
-    <div class="card">
+<div class="card">
 
-        <h1>🚉 Smart Railway Gate</h1>
+    <h1>🚉 Smart Railway Gate</h1>
 
-        <div id="status"
-             class="status">
-             Checking...
+    <div id="status"
+         class="status unknown">
+
+         UNKNOWN
+
+    </div>
+
+    <div class="box">
+
+        <div class="label">
+            Nearest Gate
         </div>
 
-        <div class="box">
+        <div id="gate"
+             class="value">
 
-            <div class="label">
-                Nearest Gate
-            </div>
+             Loading...
 
-            <div id="gate"
-                 class="value">
-                 Loading...
-            </div>
-
-        </div>
-
-        <div class="box">
-
-            <div class="label">
-                Distance From Gate
-            </div>
-
-            <div id="distance"
-                 class="value">
-                 Loading...
-            </div>
-
-        </div>
-
-        <div class="box">
-
-            <div class="label">
-                Waiting Users
-            </div>
-
-            <div id="waiting"
-                 class="value">
-                 0
-            </div>
-
-        </div>
-
-        <div class="box">
-
-            <div class="label">
-                Last Updated
-            </div>
-
-            <div id="updated"
-                 class="value">
-                 --
-            </div>
-
-        </div>
-
-        <button onclick="sendLocation()">
-            Share My Location
-        </button>
-
-        <div class="footer">
-            Live Crowd Based Railway Gate Detection
         </div>
 
     </div>
 
-    <script>
+    <div class="box">
 
-        function sendLocation(){
+        <div class="label">
+            Distance From Gate
+        </div>
 
-            navigator.geolocation.getCurrentPosition(
-                success,
-                error,
-                {
-                    enableHighAccuracy:true,
-                    timeout:10000,
-                    maximumAge:0
-                }
-            );
+        <div id="distance"
+             class="value">
 
+             Loading...
+
+        </div>
+
+    </div>
+
+    <div class="box">
+
+        <div class="label">
+            Waiting Users
+        </div>
+
+        <div id="waiting"
+             class="value">
+
+             0
+
+        </div>
+
+    </div>
+
+    <div class="box">
+
+        <div class="label">
+            Last Updated
+        </div>
+
+        <div id="updated"
+             class="value">
+
+             --
+
+        </div>
+
+    </div>
+
+    <button onclick="sendLocation()">
+        Share My Location
+    </button>
+
+</div>
+
+<script>
+
+function sendLocation(){
+
+    navigator.geolocation.getCurrentPosition(
+        success,
+        error,
+        {
+            enableHighAccuracy:true
         }
-
-        function success(position){
-
-            let data = {
-
-                lat: position.coords.latitude,
-
-                lon: position.coords.longitude,
-
-                speed: position.coords.speed || 0
-
-            };
-
-            fetch('/location', {
-
-                method:'POST',
-
-                headers:{
-                    'Content-Type':'application/json'
-                },
-
-                body: JSON.stringify(data)
-
-            })
-
-            .then(response => response.json())
-
-            .then(data => {
-
-                let statusElement =
-                    document.getElementById("status");
-
-                statusElement.innerHTML =
-                    data.status;
-
-                if(data.status == "OPEN"){
-
-    statusElement.className =
-        "status open";
+    );
 
 }
-else if(data.status == "CLOSED"){
 
-    statusElement.className =
-        "status closed";
+function success(position){
 
-}
-else{
+    let data = {
 
-    statusElement.className =
-        "status unknown";
-}
+        lat: position.coords.latitude,
 
-                document.getElementById("gate")
-                    .innerHTML =
-                    data.nearest_gate;
+        lon: position.coords.longitude,
 
-                document.getElementById("distance")
-                    .innerHTML =
-                    data.distance + " meters";
+        speed: position.coords.speed || 0
 
-                document.getElementById("waiting")
-                    .innerHTML =
-                    data.waiting_users;
+    };
 
-                document.getElementById("updated")
-                    .innerHTML =
-                    data.updated;
+    fetch('/location', {
 
-            });
+        method:'POST',
+
+        headers:{
+            'Content-Type':'application/json'
+        },
+
+        body: JSON.stringify(data)
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        let statusElement =
+            document.getElementById("status");
+
+        statusElement.innerHTML =
+            data.status;
+
+        if(data.status == "OPEN"){
+
+            statusElement.className =
+                "status open";
 
         }
+        else if(data.status == "CLOSED"){
 
-        function error(){
-
-            alert(
-                "Please allow location permission"
-            );
+            statusElement.className =
+                "status closed";
 
         }
+        else{
 
-        // Auto refresh every 5 seconds
-        setInterval(sendLocation, 5000);
+            statusElement.className =
+                "status unknown";
+        }
 
-    </script>
+        document.getElementById("gate")
+            .innerHTML =
+            data.nearest_gate;
+
+        document.getElementById("distance")
+            .innerHTML =
+            data.distance + " meters";
+
+        document.getElementById("waiting")
+            .innerHTML =
+            data.waiting_users;
+
+        document.getElementById("updated")
+            .innerHTML =
+            data.updated;
+
+    });
+
+}
+
+function error(){
+
+    alert("Please allow location access");
+
+}
+
+// AUTO REFRESH EVERY 5 SECONDS
+setInterval(sendLocation, 5000);
+
+</script>
 
 </body>
-
 </html>

@@ -1,70 +1,57 @@
-function sendLocation(){
+// -----------------------------------
+// AUTO LOCATION TRACKING
+// -----------------------------------
 
-    navigator.geolocation.getCurrentPosition(
-        success,
-        error,
-        {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        }
-    );
+function sendLocation(position) {
 
-}
-
-function success(position){
-
-    let data = {
-
+    const data = {
         lat: position.coords.latitude,
         lon: position.coords.longitude,
         speed: position.coords.speed || 0
-
     };
 
-    fetch('/location', {
-
-        method:'POST',
-
-        headers:{
-            'Content-Type':'application/json'
+    fetch("/location", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
         },
-
         body: JSON.stringify(data)
-
     })
-
     .then(response => response.json())
-
     .then(data => {
-
-        document.getElementById("status")
-            .innerHTML = data.status;
-
-        document.getElementById("gate")
-            .innerHTML = data.nearest_gate;
-
-        document.getElementById("distance")
-            .innerHTML =
-            data.distance + " meters";
-
-        document.getElementById("waiting")
-            .innerHTML =
-            data.waiting_users;
-
-        document.getElementById("updated")
-            .innerHTML =
-            data.updated;
-
+        console.log("Location Sent:", data);
+    })
+    .catch(error => {
+        console.log("Error:", error);
     });
-
 }
 
-function error(){
+// -----------------------------------
+// LOCATION ERROR
+// -----------------------------------
 
-    alert("Location permission denied");
+function locationError(error) {
 
+    alert("Please Enable Location Permission and GPS");
 }
 
-# AUTO REFRESH
-setInterval(sendLocation, 5000);
+// -----------------------------------
+// AUTO START LOCATION
+// -----------------------------------
+
+if (navigator.geolocation) {
+
+    navigator.geolocation.watchPosition(
+        sendLocation,
+        locationError,
+        {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
+        }
+    );
+
+} else {
+
+    alert("Geolocation is not supported");
+}

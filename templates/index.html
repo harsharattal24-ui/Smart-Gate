@@ -1,48 +1,319 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
-    <title>Smart Railway Gate</title>
+    <meta charset="UTF-8">
 
     <meta name="viewport"
-    content="width=device-width, initial-scale=1">
+          content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet"
-    href="{{ url_for('static', filename='style.css') }}">
+    <title>Smart Railway Gate</title>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial, sans-serif;
+        }
+
+        body{
+
+            background:#0f172a;
+
+            color:white;
+
+            display:flex;
+
+            justify-content:center;
+
+            align-items:center;
+
+            min-height:100vh;
+
+            padding:20px;
+        }
+
+        .card{
+
+            background:#1e293b;
+
+            width:100%;
+
+            max-width:420px;
+
+            padding:25px;
+
+            border-radius:20px;
+
+            text-align:center;
+
+            box-shadow:0 0 20px rgba(0,0,0,0.4);
+        }
+
+        h1{
+
+            margin-bottom:20px;
+
+            color:#38bdf8;
+
+            font-size:28px;
+        }
+
+        .status{
+
+            font-size:35px;
+
+            font-weight:bold;
+
+            margin:20px 0;
+        }
+
+        .open{
+            color:#22c55e;
+        }
+
+        .closed{
+            color:#ef4444;
+        }
+
+        .box{
+
+            background:#334155;
+
+            padding:15px;
+
+            border-radius:12px;
+
+            margin-top:15px;
+        }
+
+        .label{
+
+            color:#94a3b8;
+
+            font-size:14px;
+
+            margin-bottom:5px;
+        }
+
+        .value{
+
+            font-size:22px;
+
+            font-weight:bold;
+        }
+
+        button{
+
+            margin-top:25px;
+
+            width:100%;
+
+            padding:15px;
+
+            border:none;
+
+            border-radius:12px;
+
+            background:#38bdf8;
+
+            color:white;
+
+            font-size:18px;
+
+            cursor:pointer;
+
+            transition:0.3s;
+        }
+
+        button:hover{
+
+            background:#0ea5e9;
+        }
+
+        .footer{
+
+            margin-top:20px;
+
+            font-size:13px;
+
+            color:#94a3b8;
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-<div class="card">
+    <div class="card">
 
-    <h1>🚉 Smart Railway Gate</h1>
+        <h1>🚉 Smart Railway Gate</h1>
 
-    {% if status == "OPEN" %}
-        <div class="status open">OPEN</div>
-    {% else %}
-        <div class="status closed">CLOSED</div>
-    {% endif %}
+        <div id="status"
+             class="status">
+             Checking...
+        </div>
 
-    <h3>Waiting Users: {{ waiting }}</h3>
+        <div class="box">
 
-    <p>Updated: {{ updated }}</p>
-<h2 id="status">Checking...</h2>
+            <div class="label">
+                Nearest Gate
+            </div>
 
-<h3>Nearest Gate:</h3>
-<p id="gate">Loading...</p>
+            <div id="gate"
+                 class="value">
+                 Loading...
+            </div>
 
-<h3>Distance From Gate:</h3>
-<p id="distance">Loading...</p>
-    <button onclick="sendLocation()">
-        Share My Location
-    </button>
+        </div>
 
-</div>
+        <div class="box">
 
-<script src="{{ url_for('static',
-filename='script.js') }}"></script>
+            <div class="label">
+                Distance From Gate
+            </div>
+
+            <div id="distance"
+                 class="value">
+                 Loading...
+            </div>
+
+        </div>
+
+        <div class="box">
+
+            <div class="label">
+                Waiting Users
+            </div>
+
+            <div id="waiting"
+                 class="value">
+                 0
+            </div>
+
+        </div>
+
+        <div class="box">
+
+            <div class="label">
+                Last Updated
+            </div>
+
+            <div id="updated"
+                 class="value">
+                 --
+            </div>
+
+        </div>
+
+        <button onclick="sendLocation()">
+            Share My Location
+        </button>
+
+        <div class="footer">
+            Live Crowd Based Railway Gate Detection
+        </div>
+
+    </div>
+
+    <script>
+
+        function sendLocation(){
+
+            navigator.geolocation.getCurrentPosition(
+                success,
+                error,
+                {
+                    enableHighAccuracy:true,
+                    timeout:10000,
+                    maximumAge:0
+                }
+            );
+
+        }
+
+        function success(position){
+
+            let data = {
+
+                lat: position.coords.latitude,
+
+                lon: position.coords.longitude,
+
+                speed: position.coords.speed || 0
+
+            };
+
+            fetch('/location', {
+
+                method:'POST',
+
+                headers:{
+                    'Content-Type':'application/json'
+                },
+
+                body: JSON.stringify(data)
+
+            })
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                let statusElement =
+                    document.getElementById("status");
+
+                statusElement.innerHTML =
+                    data.status;
+
+                if(data.status == "OPEN"){
+
+                    statusElement.className =
+                        "status open";
+
+                }else{
+
+                    statusElement.className =
+                        "status closed";
+                }
+
+                document.getElementById("gate")
+                    .innerHTML =
+                    data.nearest_gate;
+
+                document.getElementById("distance")
+                    .innerHTML =
+                    data.distance + " meters";
+
+                document.getElementById("waiting")
+                    .innerHTML =
+                    data.waiting_users;
+
+                document.getElementById("updated")
+                    .innerHTML =
+                    data.updated;
+
+            });
+
+        }
+
+        function error(){
+
+            alert(
+                "Please allow location permission"
+            );
+
+        }
+
+        // Auto refresh every 5 seconds
+        setInterval(sendLocation, 5000);
+
+    </script>
 
 </body>
+
 </html>

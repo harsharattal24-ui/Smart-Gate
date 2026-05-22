@@ -1,20 +1,19 @@
 from flask import Flask, render_template, request, jsonify
-import json
-from datetime import datetime
 from math import radians, sin, cos, sqrt, atan2
+from datetime import datetime
 import os
 
 app = Flask(__name__)
 
-DATA_FILE = "database/data.json"
+# -----------------------------------
+# STORE USERS
+# -----------------------------------
 
-# Store active users
 users = []
 
-# ------------------------------------------------
+# -----------------------------------
 # RAILWAY GATES
-# Replace with real coordinates
-# ------------------------------------------------
+# -----------------------------------
 
 gates = [
 
@@ -32,27 +31,9 @@ gates = [
 
 ]
 
-# ------------------------------------------------
-# LOAD DATA
-# ------------------------------------------------
-
-def load_data():
-
-    with open(DATA_FILE, "r") as file:
-        return json.load(file)
-
-# ------------------------------------------------
-# SAVE DATA
-# ------------------------------------------------
-
-def save_data(data):
-
-    with open(DATA_FILE, "w") as file:
-        json.dump(data, file, indent=4)
-
-# ------------------------------------------------
+# -----------------------------------
 # DISTANCE CALCULATION
-# ------------------------------------------------
+# -----------------------------------
 
 def calculate_distance(lat1, lon1, lat2, lon2):
 
@@ -70,141 +51,117 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
     return R * c * 1000
 
-# ------------------------------------------------
-# FIND NEAREST GATE
-# ------------------------------------------------
-
-def find_nearest_gate(user_lat, user_lon):
-
-    nearest_gate = None
-    min_distance = 999999
-
-    for gate in gates:
-
-        distance = calculate_distance(
-            user_lat,
-            user_lon,
-            gate["lat"],
-            gate["lon"]
-        )
-
-        if distance < min_distance:
-
-            min_distance = distance
-            nearest_gate = gate
-
-    return nearest_gate, min_distance
-
-# ------------------------------------------------
+# -----------------------------------
 # HOME PAGE
-# ------------------------------------------------
+# -----------------------------------
 
 @app.route("/")
 def home():
 
-    data = load_data()
+    return render_template("index.html")
 
-    return render_template(
-        "index.html",
-        status=data["status"],
-        waiting=data["waiting_users"],
-        updated=data["last_updated"]
-    )
-
-# ------------------------------------------------
+# -----------------------------------
 # RECEIVE LOCATION
-# ------------------------------------------------
+# -----------------------------------
 
 @app.route("/location", methods=["POST"])
 def location():
 
     global users
 
-    data = load_data()
-
     user = request.json
 
     users.append(user)
 
-    # Prevent huge memory usage
+    # Limit memory
     if len(users) > 100:
+
         users = users[-100:]
 
-    # Current user nearest gate
-    nearest_gate, current_distance = find_nearest_gate(
-        user["lat"],
-        user["lon"]
-    )
+    gate_results = []
 
-    waiting_users = 0
-    nearby_users = 0
+    # -----------------------------------
+    # CHECK EACH GATE
+    # -----------------------------------
 
-    # Check all users
-    for u in users:
+    for gate in gates:
 
-        gate, distance = find_nearest_gate(
-            u["lat"],
-            u["lon"]
+        nearby_users = 0
+        waiting_users = 0
+
+        for u in users:
+
+            distance = calculate_distance(
+
+                u["lat"],
+                u["lon"],
+
+                gate["lat"],
+                gate["lon"]
+
+            )
+
+            # Nearby user
+            if distance < 100:
+
+                nearby_users += 1
+
+                speed = u.get("speed")
+
+                if speed is None or speed < 2:
+
+                    waiting_users += 1
+
+        # -----------------------------------
+        # GATE STATUS
+        # -----------------------------------
+
+        if nearby_users == 0:
+
+            status = "UNKNOWN"
+
+        elif waiting_users >= 3:
+
+            status = "CLOSED"
+
+        else:
+
+            status = "OPEN"
+
+        # Current user's distance
+        current_distance = calculate_distance(
+
+            user["lat"],
+            user["lon"],
+
+            gate["lat"],
+            gate["lon"]
+
         )
 
-        # Only nearby users
-        if distance < 100:
+        gate_results.append({
 
-            nearby_users += 1
+            "name": gate["name"],
 
-            speed = u.get("speed")
+            "status": status,
 
-            # Some phones return None speed
-            if speed is None or speed < 2:
+            "waiting_users": waiting_users,
 
-                waiting_users += 1
+            "nearby_users": nearby_users,
 
-    # Save values
-    data["waiting_users"] = waiting_users
+            "distance": round(current_distance, 2),
 
-    data["last_updated"] = datetime.now().strftime(
-        "%I:%M:%S %p"
-    )
+            "updated": datetime.now().strftime(
+                "%I:%M:%S %p"
+            )
 
-    # ------------------------------------------------
-    # SMART STATUS LOGIC
-    # ------------------------------------------------
+        })
 
-    if nearby_users == 0:
+    return jsonify(gate_results)
 
-        data["status"] = "UNKNOWN"
-
-    elif waiting_users >= 3:
-
-        data["status"] = "CLOSED"
-
-    else:
-
-        data["status"] = "OPEN"
-
-    save_data(data)
-
-    # ------------------------------------------------
-    # RESPONSE
-    # ------------------------------------------------
-
-    return jsonify({
-
-        "status": data["status"],
-
-        "waiting_users": waiting_users,
-
-        "distance": round(current_distance, 2),
-
-        "nearest_gate": nearest_gate["name"],
-
-        "updated": data["last_updated"]
-
-    })
-
-# ------------------------------------------------
+# -----------------------------------
 # RUN APP
-# ------------------------------------------------
+# -----------------------------------
 
 if __name__ == "__main__":
 

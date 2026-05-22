@@ -146,6 +146,17 @@ function success(position){
     };
 
     fetch('/location', {
+          body: JSON.stringify({
+
+    user_id: navigator.userAgent,
+
+    latitude: userLat,
+
+    longitude: userLon,
+
+    speed: position.coords.speed || 0
+
+})
 
         method:'POST',
 

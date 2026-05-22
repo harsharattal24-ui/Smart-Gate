@@ -1,87 +1,38 @@
 from flask import Flask, render_template, request, jsonify
 from math import radians, sin, cos, sqrt, atan2
 from datetime import datetime
-import json
 import os
 
 app = Flask(__name__)
 
 # -----------------------------------
-# DATABASE FILE
+# STORE USERS
 # -----------------------------------
 
-DATA_FILE = "database/data.json"
+users = []
 
 # -----------------------------------
-# GATE LOCATIONS
+# RAILWAY GATES
 # -----------------------------------
 
-GATES = {
-    "gate1": {
-        "name": "Gate 1",
+gates = [
+
+    {
+        "name": "Gate A",
         "lat": 12.9716,
         "lon": 77.5946
     },
 
-    "gate2": {
-        "name": "Gate 2",
-        "lat": 12.9750,
-        "lon": 77.5990
-    }
-}
-
-# -----------------------------------
-# CREATE DATABASE IF NOT EXISTS
-# -----------------------------------
-
-if not os.path.exists("database"):
-    os.makedirs("database")
-
-if not os.path.exists(DATA_FILE):
-
-    default_data = {
-
-        "gate1": {
-            "status": "NO DATA",
-            "waiting_users": 0,
-            "nearby_users": 0,
-            "distance": 0,
-            "last_updated": "--"
-        },
-
-        "gate2": {
-            "status": "NO DATA",
-            "waiting_users": 0,
-            "nearby_users": 0,
-            "distance": 0,
-            "last_updated": "--"
-        }
-
+    {
+        "name": "Gate B",
+        "lat": 12.9725,
+        "lon": 77.5955
     }
 
-    with open(DATA_FILE, "w") as file:
-        json.dump(default_data, file, indent=4)
+]
 
 # -----------------------------------
-# LOAD DATA
-# -----------------------------------
-
-def load_data():
-
-    with open(DATA_FILE, "r") as file:
-        return json.load(file)
-
-# -----------------------------------
-# SAVE DATA
-# -----------------------------------
-
-def save_data(data):
-
-    with open(DATA_FILE, "w") as file:
-        json.dump(data, file, indent=4)
-
-# -----------------------------------
-# DISTANCE FUNCTION
+# DISTANCE CALCULATION
 # -----------------------------------
 
 def calculate_distance(lat1, lon1, lat2, lon2):
@@ -91,12 +42,10 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
 
-    a = (
-        sin(dlat / 2) ** 2
-        + cos(radians(lat1))
-        * cos(radians(lat2))
-        * sin(dlon / 2) ** 2
-    )
+    a = sin(dlat / 2) ** 2 + \
+        cos(radians(lat1)) * \
+        cos(radians(lat2)) * \
+        sin(dlon / 2) ** 2
 
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
@@ -112,69 +61,66 @@ def home():
     return render_template("index.html")
 
 # -----------------------------------
-# SEND DATA TO WEBSITE
-# -----------------------------------
-
-@app.route("/data")
-def data():
-
-    data = load_data()
-
-    return jsonify(data)
-
-# -----------------------------------
 # RECEIVE LOCATION
 # -----------------------------------
 
 @app.route("/location", methods=["POST"])
 def location():
 
-    data = load_data()
+    global users
 
     user = request.json
 
-    user_lat = user["latitude"]
-    user_lon = user["longitude"]
+    users.append(user)
 
-    speed = user.get("speed", 0)
+    # Limit memory
+    if len(users) > 100:
+
+        users = users[-100:]
+
+    gate_results = []
 
     # -----------------------------------
     # CHECK EACH GATE
     # -----------------------------------
 
-    for gate_id, gate in GATES.items():
-
-        gate_lat = gate["lat"]
-        gate_lon = gate["lon"]
-
-        distance = calculate_distance(
-            user_lat,
-            user_lon,
-            gate_lat,
-            gate_lon
-        )
+    for gate in gates:
 
         nearby_users = 0
         waiting_users = 0
 
-        # Nearby if within 100m
-        if distance <= 100:
+        for u in users:
 
-            nearby_users = 1
+            distance = calculate_distance(
 
-            # Waiting if slow
-            if speed < 2:
-                waiting_users = 1
+                u["lat"],
+                u["lon"],
+
+                gate["lat"],
+                gate["lon"]
+
+            )
+
+            # Nearby user
+            if distance < 100:
+
+                nearby_users += 1
+
+                speed = u.get("speed")
+
+                if speed is None or speed < 2:
+
+                    waiting_users += 1
 
         # -----------------------------------
-        # STATUS LOGIC
+        # GATE STATUS
         # -----------------------------------
 
         if nearby_users == 0:
 
-            status = "NO DATA"
+            status = "UNKNOWN"
 
-        elif waiting_users >= 1:
+        elif waiting_users >= 3:
 
             status = "CLOSED"
 
@@ -182,11 +128,20 @@ def location():
 
             status = "OPEN"
 
-        # -----------------------------------
-        # SAVE GATE DATA
-        # -----------------------------------
+        # Current user's distance
+        current_distance = calculate_distance(
 
-        data[gate_id] = {
+            user["lat"],
+            user["lon"],
+
+            gate["lat"],
+            gate["lon"]
+
+        )
+
+        gate_results.append({
+
+            "name": gate["name"],
 
             "status": status,
 
@@ -194,19 +149,15 @@ def location():
 
             "nearby_users": nearby_users,
 
-            "distance": round(distance, 1),
+            "distance": round(current_distance, 2),
 
-            "last_updated": datetime.now().strftime(
+            "updated": datetime.now().strftime(
                 "%I:%M:%S %p"
             )
 
-        }
+        })
 
-    save_data(data)
-
-    return jsonify({
-        "message": "Location received"
-    })
+    return jsonify(gate_results)
 
 # -----------------------------------
 # RUN APP

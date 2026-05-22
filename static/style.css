@@ -31,9 +31,11 @@ body{
 }
 
 .closed{
-    color:red;
+    color:#ef4444;
 }
-
+.unknown{
+    color:#facc15;
+}
 button{
 
     padding:15px;

@@ -15,7 +15,7 @@ body{
 
     min-height:100vh;
 
-    background-image:url("https://i.imgur.com/fmZ2XGk.jpeg");
+    background-image:url("/static/simple-abstract-background-with-blue-gradations-vector.jpg");
 
     background-size:cover;
 
@@ -48,7 +48,7 @@ h1{
 
 .user-box{
 
-    background-image:url("https://i.imgur.com/cvT2M6s.jpeg");
+    background-image:url("/static/Wallpaper.jpeg");
 
     background-size:cover;
 
@@ -67,7 +67,7 @@ h1{
 
 .gate-card{
 
-    background-image:url("https://i.imgur.com/cvT2M6s.jpeg");
+    background-image:url("/static/Wallpaper.jpeg");
 
     background-size:cover;
 

@@ -1,278 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 
-<meta charset="UTF-8">
+<title>Railway Gate Tracker</title>
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Smart Railway Gates</title>
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial;
-}
-
-body{
-
-    background:#0f172a;
-
-    color:white;
-
-    padding:20px;
-}
-
-h1{
-
-    text-align:center;
-
-    margin-bottom:25px;
-
-    color:#38bdf8;
-}
-
-.container{
-
-    max-width:500px;
-
-    margin:auto;
-}
-
-.card{
-
-    background:#1e293b;
-
-    padding:20px;
-
-    border-radius:20px;
-
-    margin-bottom:20px;
-}
-
-.status{
-
-    font-size:32px;
-
-    font-weight:bold;
-
-    margin:15px 0;
-}
-
-.open{
-    color:#22c55e;
-}
-
-.closed{
-    color:#ef4444;
-}
-
-.unknown{
-    color:#facc15;
-}
-
-.box{
-
-    background:#334155;
-
-    padding:12px;
-
-    border-radius:12px;
-
-    margin-top:10px;
-}
-
-.label{
-
-    color:#94a3b8;
-
-    font-size:14px;
-}
-
-.value{
-
-    font-size:20px;
-
-    font-weight:bold;
-
-    margin-top:5px;
-
-</style>
+<link rel="stylesheet" href="/static/style.css">
 
 </head>
 
 <body>
 
-<h1>🚉 Smart Railway Gates</h1>
+<div class="container">
 
-<div class="container"
-     id="gatesContainer">
+    <h1>Railway Gate Tracker</h1>
+
+    <!-- USER INFO -->
+
+    <div class="user-box">
+
+        <h2>Your Info</h2>
+
+        <p id="locationText">
+
+            Searching GPS...
+
+        </p>
+
+        <p id="speedText">
+
+            Speed: 0 km/h
+
+        </p>
+
+    </div>
+
+    <!-- GATE 1 -->
+
+    <div class="gate-card">
+
+        <h2>Cantonment Gate</h2>
+
+        <p id="distance1">
+
+            Distance: --
+
+        </p>
+
+        <p id="waiting1">
+
+            Waiting Users: 0
+
+        </p>
+
+        <div id="status1" class="status unknown">
+
+            NO DATA
+
+        </div>
+
+    </div>
+
+    <!-- GATE 2 -->
+
+    <div class="gate-card">
+
+        <h2>Radio Park Gate</h2>
+
+        <p id="distance2">
+
+            Distance: --
+
+        </p>
+
+        <p id="waiting2">
+
+            Waiting Users: 0
+
+        </p>
+
+        <div id="status2" class="status unknown">
+
+            NO DATA
+
+        </div>
+
+    </div>
 
 </div>
 
-
-<script>
-
-function sendLocation(){
-
-    navigator.geolocation.getCurrentPosition(
-
-        success,
-        error,
-
-        {
-            enableHighAccuracy:true
-        }
-
-    );
-
-}
-
-function success(position){
-
-    let data = {
-
-        lat: position.coords.latitude,
-
-        lon: position.coords.longitude,
-
-        speed: position.coords.speed || 0
-
-    };
-
-    fetch('/location', {
-          body: JSON.stringify({
-
-    user_id: navigator.userAgent,
-
-    latitude: userLat,
-
-    longitude: userLon,
-
-    speed: position.coords.speed || 0
-
-})
-
-        method:'POST',
-
-        headers:{
-            'Content-Type':'application/json'
-        },
-
-        body: JSON.stringify(data)
-
-    })
-
-    .then(response => response.json())
-
-    .then(data => {
-
-        let container =
-            document.getElementById(
-                "gatesContainer"
-            );
-
-        container.innerHTML = "";
-
-        data.forEach(gate => {
-
-            let colorClass = "unknown";
-
-            if(gate.status == "OPEN"){
-
-                colorClass = "open";
-
-            }
-            else if(gate.status == "CLOSED"){
-
-                colorClass = "closed";
-            }
-
-            container.innerHTML += `
-
-            <div class="card">
-
-                <h2>${gate.name}</h2>
-
-                <div class="status ${colorClass}">
-                    ${gate.status}
-                </div>
-
-                <div class="box">
-
-                    <div class="label">
-                        Distance From Gate
-                    </div>
-
-                    <div class="value">
-                        ${gate.distance} meters
-                    </div>
-
-                </div>
-
-                <div class="box">
-
-                    <div class="label">
-                        Waiting Users
-                    </div>
-
-                    <div class="value">
-                        ${gate.waiting_users}
-                    </div>
-
-                </div>
-
-                <div class="box">
-
-                    <div class="label">
-                        Nearby Users
-                    </div>
-
-                    <div class="value">
-                        ${gate.nearby_users}
-                    </div>
-
-                </div>
-
-                <div class="box">
-
-                    <div class="label">
-                        Last Updated
-                    </div>
-
-                    <div class="value">
-                        ${gate.updated}
-                    </div>
-
-                </div>
-
-            </div>
-
-            `;
-
-        });
-
-    });
-
-}
-
-function error(){
-
-    alert(
-        "Please allow location access"
-    );
-
-}
-
-// AUTO REFRESH
-setInterval(sendLocation, 5000);
-
-</script>
+<script src="/static/script.js"></script>
 
 </body>
 </html>

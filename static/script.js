@@ -20,7 +20,9 @@ function openRoute(destLat,destLng){
 
     const url =
 
-        "https://www.google.com/maps/dir/" +
+        "https://www.google.com/maps/dir/?api=1" +
+
+        "&origin=" +
 
         lastLat +
 
@@ -28,15 +30,17 @@ function openRoute(destLat,destLng){
 
         lastLng +
 
-        "/" +
+        "&destination=" +
 
         destLat +
 
         "," +
 
-        destLng;
+        destLng +
 
-    window.open(url,"_blank");
+        "&travelmode=driving";
+
+    window.location.href = url;
 }
 
 // =========================================
@@ -50,6 +54,8 @@ function setStatus(id,status){
 
     box.className = "status";
 
+    // OPEN
+
     if(status == "OPEN"){
 
         box.innerText = "OPEN";
@@ -57,12 +63,16 @@ function setStatus(id,status){
         box.classList.add("open");
     }
 
+    // CLOSED
+
     else if(status == "CLOSED"){
 
         box.innerText = "CLOSED";
 
         box.classList.add("closed");
     }
+
+    // UNKNOWN
 
     else{
 
@@ -93,7 +103,9 @@ function updateLocation(){
                 lastLat = lat;
                 lastLng = lng;
 
-                // UPDATE MAP
+                // =========================================
+                // UPDATE GOOGLE MAP
+                // =========================================
 
                 document.getElementById("mapFrame").src =
 
@@ -107,7 +119,9 @@ function updateLocation(){
 
                     "&z=16&output=embed";
 
+                // =========================================
                 // SPEED
+                // =========================================
 
                 let speed =
                     position.coords.speed;
@@ -119,12 +133,16 @@ function updateLocation(){
 
                 speed = speed * 3.6;
 
+                // REMOVE GPS NOISE
+
                 if(speed < 3){
 
                     speed = 0;
                 }
 
+                // =========================================
                 // SHOW LOCATION
+                // =========================================
 
                 document.getElementById("locationText").innerHTML =
 
@@ -134,7 +152,9 @@ function updateLocation(){
                     "<br><br>Longitude: " +
                     lng.toFixed(5);
 
+                // =========================================
                 // SHOW SPEED
+                // =========================================
 
                 document.getElementById("speedText").innerText =
 
@@ -142,7 +162,9 @@ function updateLocation(){
                     speed.toFixed(2) +
                     " km/h";
 
+                // =========================================
                 // SEND TO SERVER
+                // =========================================
 
                 const response = await fetch(
 
@@ -173,7 +195,9 @@ function updateLocation(){
 
                 if(data.success){
 
+                    // =========================================
                     // GATE 1
+                    // =========================================
 
                     document.getElementById("distance1").innerText =
 
@@ -191,7 +215,9 @@ function updateLocation(){
                         data.gates[0].status
                     );
 
+                    // =========================================
                     // GATE 2
+                    // =========================================
 
                     document.getElementById("distance2").innerText =
 
@@ -228,6 +254,10 @@ function updateLocation(){
 
             console.log(error);
 
+            // =========================================
+            // USE PREVIOUS LOCATION
+            // =========================================
+
             if(lastLat != null){
 
                 document.getElementById("locationText").innerHTML =
@@ -259,10 +289,14 @@ function updateLocation(){
 
 }
 
+// =========================================
 // FIRST LOAD
+// =========================================
 
 updateLocation();
 
-// AUTO REFRESH
+// =========================================
+// AUTO REFRESH EVERY 5 SEC
+// =========================================
 
 setInterval(updateLocation,5000);

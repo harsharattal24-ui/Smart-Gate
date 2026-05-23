@@ -1,57 +1,230 @@
-// -----------------------------------
-// AUTO LOCATION TRACKING
-// -----------------------------------
+// =========================================
+// SAVE LAST LOCATION
+// =========================================
 
-function sendLocation(position) {
+let lastLat = null;
+let lastLng = null;
 
-    const data = {
-        lat: position.coords.latitude,
-        lon: position.coords.longitude,
-        speed: position.coords.speed || 0
-    };
+// =========================================
+// STATUS COLORS
+// =========================================
 
-    fetch("/location", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
+function setStatus(id,status){
+
+    const box =
+        document.getElementById(id);
+
+    box.className = "status";
+
+    // OPEN
+
+    if(status == "OPEN"){
+
+        box.innerText = "OPEN";
+
+        box.classList.add("open");
+    }
+
+    // CLOSED
+
+    else if(status == "CLOSED"){
+
+        box.innerText = "CLOSED";
+
+        box.classList.add("closed");
+    }
+
+    // UNKNOWN
+
+    else{
+
+        box.innerText = "NO DATA";
+
+        box.classList.add("unknown");
+    }
+}
+
+// =========================================
+// UPDATE LOCATION
+// =========================================
+
+function updateLocation(){
+
+    navigator.geolocation.getCurrentPosition(
+
+        async function(position){
+
+            try{
+
+                const lat =
+                    position.coords.latitude;
+
+                const lng =
+                    position.coords.longitude;
+
+                lastLat = lat;
+                lastLng = lng;
+
+                // SPEED
+
+                let speed =
+                    position.coords.speed;
+
+                if(speed == null){
+
+                    speed = 0;
+                }
+
+                speed = speed * 3.6;
+
+                // REMOVE GPS NOISE
+
+                if(speed < 3){
+
+                    speed = 0;
+                }
+
+                // SHOW LOCATION
+
+                document.getElementById("locationText").innerHTML =
+
+                    "Latitude: " +
+                    lat.toFixed(5) +
+
+                    "<br><br>Longitude: " +
+                    lng.toFixed(5);
+
+                // SHOW SPEED
+
+                document.getElementById("speedText").innerText =
+
+                    "Speed: " +
+                    speed.toFixed(2) +
+                    " km/h";
+
+                // SEND TO SERVER
+
+                const response = await fetch(
+
+                    "/location",
+
+                    {
+
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":"application/json"
+                        },
+
+                        body:JSON.stringify({
+
+                            lat:lat,
+                            lng:lng,
+                            speed:speed
+
+                        })
+
+                    }
+
+                );
+
+                const data =
+                    await response.json();
+
+                if(data.success){
+
+                    // GATE 1
+
+                    document.getElementById("distance1").innerText =
+
+                        "Distance: " +
+                        data.gates[0].distance +
+                        " meters";
+
+                    document.getElementById("waiting1").innerText =
+
+                        "Waiting Users: " +
+                        data.gates[0].waiting;
+
+                    setStatus(
+                        "status1",
+                        data.gates[0].status
+                    );
+
+                    // GATE 2
+
+                    document.getElementById("distance2").innerText =
+
+                        "Distance: " +
+                        data.gates[1].distance +
+                        " meters";
+
+                    document.getElementById("waiting2").innerText =
+
+                        "Waiting Users: " +
+                        data.gates[1].waiting;
+
+                    setStatus(
+                        "status2",
+                        data.gates[1].status
+                    );
+
+                }
+
+            }
+
+            catch(error){
+
+                console.log(error);
+
+                document.getElementById("locationText").innerText =
+
+                    "Server Error";
+            }
+
         },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Location Sent:", data);
-    })
-    .catch(error => {
-        console.log("Error:", error);
-    });
-}
 
-// -----------------------------------
-// LOCATION ERROR
-// -----------------------------------
+        function(error){
 
-function locationError(error) {
+            console.log(error);
 
-    alert("Please Enable Location Permission and GPS");
-}
+            // USE PREVIOUS LOCATION
 
-// -----------------------------------
-// AUTO START LOCATION
-// -----------------------------------
+            if(lastLat != null){
 
-if (navigator.geolocation) {
+                document.getElementById("locationText").innerHTML =
 
-    navigator.geolocation.watchPosition(
-        sendLocation,
-        locationError,
+                    "Using Previous Location";
+
+            }
+
+            else{
+
+                document.getElementById("locationText").innerHTML =
+
+                    "Searching GPS...";
+            }
+
+        },
+
         {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 10000
+
+            enableHighAccuracy:false,
+
+            timeout:8000,
+
+            maximumAge:15000
+
         }
+
     );
 
-} else {
-
-    alert("Geolocation is not supported");
 }
+
+// FIRST LOAD
+
+updateLocation();
+
+// AUTO REFRESH EVERY 5 SEC
+
+setInterval(updateLocation,5000);

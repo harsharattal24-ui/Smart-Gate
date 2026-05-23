@@ -1,235 +1,157 @@
 from flask import Flask, render_template, request, jsonify
-from math import radians, sin, cos, sqrt, atan2
-from datetime import datetime
-import json
-import os
+import math
 
 app = Flask(__name__)
 
-DATA_FILE = "database/data.json"
+# =========================================
+# GATE LOCATIONS
+# =========================================
 
-active_users = {}
+gates = [
 
-GATES = {
-
-    "gate1": {
-        "lat": 12.9716,
-        "lon": 77.5946
+    {
+        "name": "Cantonment Gate",
+        "lat": 15.1514586,
+        "lng": 76.8938312
     },
 
-    "gate2": {
-        "lat": 12.9750,
-        "lon": 77.5990
+    {
+        "name": "Radio Park Gate",
+        "lat": 15.1445935,
+        "lng": 76.9047562
     }
 
-}
+]
 
-# -----------------------------------
-# CREATE DATABASE
-# -----------------------------------
-
-if not os.path.exists("database"):
-
-    os.makedirs("database")
-
-if not os.path.exists(DATA_FILE):
-
-    default_data = {
-
-        "gate1": {
-            "status": "NO DATA",
-            "waiting_users": 0,
-            "nearby_users": 0,
-            "distance": 0,
-            "last_updated": "--"
-        },
-
-        "gate2": {
-            "status": "NO DATA",
-            "waiting_users": 0,
-            "nearby_users": 0,
-            "distance": 0,
-            "last_updated": "--"
-        }
-
-    }
-
-    with open(DATA_FILE, "w") as file:
-
-        json.dump(default_data, file, indent=4)
-
-# -----------------------------------
-# LOAD DATA
-# -----------------------------------
-
-def load_data():
-
-    with open(DATA_FILE, "r") as file:
-
-        return json.load(file)
-
-# -----------------------------------
-# SAVE DATA
-# -----------------------------------
-
-def save_data(data):
-
-    with open(DATA_FILE, "w") as file:
-
-        json.dump(data, file, indent=4)
-
-# -----------------------------------
+# =========================================
 # DISTANCE FUNCTION
-# -----------------------------------
+# =========================================
 
 def calculate_distance(lat1, lon1, lat2, lon2):
 
-    R = 6371
+    R = 6371000
 
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
 
     a = (
-        sin(dlat / 2) ** 2
-        + cos(radians(lat1))
-        * cos(radians(lat2))
-        * sin(dlon / 2) ** 2
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1)
+        * math.cos(phi2)
+        * math.sin(dlambda / 2) ** 2
     )
 
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    c = 2 * math.atan2(
+        math.sqrt(a),
+        math.sqrt(1 - a)
+    )
 
-    return R * c * 1000
+    return round(R * c)
 
-# -----------------------------------
-# HOME PAGE
-# -----------------------------------
+# =========================================
+# HOME
+# =========================================
 
 @app.route("/")
 def home():
 
     return render_template("index.html")
 
-# -----------------------------------
-# SEND DATA
-# -----------------------------------
-
-@app.route("/data")
-def data():
-
-    return jsonify(load_data())
-
-# -----------------------------------
-# RECEIVE LOCATION
-# -----------------------------------
+# =========================================
+# LOCATION API
+# =========================================
 
 @app.route("/location", methods=["POST"])
 def location():
 
-    global active_users
+    try:
 
-    data = load_data()
+        data = request.json
 
-    user = request.json
+        lat = float(data["lat"])
+        lng = float(data["lng"])
+        speed = float(data["speed"])
 
-    user_id = user.get("user_id", "unknown")
+        result = []
 
-    user_lat = user["latitude"]
-    user_lon = user["longitude"]
-
-    speed = user.get("speed", 0)
-
-    active_users[user_id] = {
-
-        "lat": user_lat,
-        "lon": user_lon,
-        "speed": speed,
-        "time": datetime.now()
-
-    }
-
-    for gate_id, gate in GATES.items():
-
-        nearby_users = 0
-        waiting_users = 0
-
-        gate_lat = gate["lat"]
-        gate_lon = gate["lon"]
-
-        user_distance = calculate_distance(
-
-            user_lat,
-            user_lon,
-
-            gate_lat,
-            gate_lon
-
-        )
-
-        for uid, u in active_users.items():
+        for gate in gates:
 
             distance = calculate_distance(
 
-                u["lat"],
-                u["lon"],
+                lat,
+                lng,
 
-                gate_lat,
-                gate_lon
+                gate["lat"],
+                gate["lng"]
 
             )
 
-            if distance <= 100:
+            # =========================================
+            # GATE STATUS
+            # =========================================
 
-                nearby_users += 1
+            # USER NEAR GATE
 
-                if u["speed"] < 2:
+            if distance < 300:
 
-                    waiting_users += 1
+                # USER WAITING
 
-        if nearby_users == 0:
+                if speed < 3:
 
-            status = "NO DATA"
+                    status = "CLOSED"
+                    waiting = 1
 
-        elif waiting_users >= 2:
+                # USER MOVING
 
-            status = "CLOSED"
+                else:
 
-        else:
+                    status = "OPEN"
+                    waiting = 0
 
-            status = "OPEN"
+            # NO USER NEAR GATE
 
-        data[gate_id] = {
+            else:
 
-            "status": status,
+                status = "UNKNOWN"
+                waiting = 0
 
-            "waiting_users": waiting_users,
+            result.append({
 
-            "nearby_users": nearby_users,
+                "name": gate["name"],
+                "distance": distance,
+                "status": status,
+                "waiting": waiting
 
-            "distance": round(user_distance, 1),
+            })
 
-            "last_updated": datetime.now().strftime(
-                "%I:%M:%S %p"
-            )
+        return jsonify({
 
-        }
+            "success": True,
+            "gates": result
 
-    save_data(data)
+        })
 
-    return jsonify({
+    except Exception as e:
 
-        "message": "Location received"
+        print(e)
 
-    })
+        return jsonify({
 
-# -----------------------------------
-# RUN APP
-# -----------------------------------
+            "success": False
+
+        })
+
+# =========================================
+# RUN
+# =========================================
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 5000))
-
     app.run(
         host="0.0.0.0",
-        port=port
+        port=5000,
+        debug=True
     )

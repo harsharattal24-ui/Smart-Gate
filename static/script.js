@@ -20,7 +20,17 @@ function openRoute(destLat,destLng){
 
     const url =
 
-        "google.navigation:q=" +
+        "https://www.google.com/maps/dir/?api=1" +
+
+        "&origin=" +
+
+        lastLat +
+
+        "," +
+
+        lastLng +
+
+        "&destination=" +
 
         destLat +
 
@@ -28,9 +38,8 @@ function openRoute(destLat,destLng){
 
         destLng;
 
-    window.location.href = url;
+    window.open(url, "_blank");
 }
-
 // =========================================
 // STATUS COLORS
 // =========================================

@@ -20,25 +20,13 @@ function openRoute(destLat,destLng){
 
     const url =
 
-        "https://www.google.com/maps/dir/?api=1" +
-
-        "&origin=" +
-
-        lastLat +
-
-        "," +
-
-        lastLng +
-
-        "&destination=" +
+        "google.navigation:q=" +
 
         destLat +
 
         "," +
 
-        destLng +
-
-        "&travelmode=driving";
+        destLng;
 
     window.location.href = url;
 }

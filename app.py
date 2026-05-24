@@ -1,31 +1,34 @@
 from flask import Flask, render_template, request, jsonify
 import math
+import time
 
 app = Flask(__name__)
 
-# =========================================
-# GATE LOCATIONS
-# =========================================
+# ======================================
+# GATE DATA
+# ======================================
 
 gates = [
 
     {
         "name": "Cantonment Gate",
         "lat": 15.1514586,
-        "lng": 76.8938312
+        "lng": 76.8938312,
+        "closed_since": None
     },
 
     {
         "name": "Radio Park Gate",
         "lat": 15.1445935,
-        "lng": 76.9047562
+        "lng": 76.9047562,
+        "closed_since": None
     }
 
 ]
 
-# =========================================
+# ======================================
 # DISTANCE FUNCTION
-# =========================================
+# ======================================
 
 def calculate_distance(lat1, lon1, lat2, lon2):
 
@@ -51,31 +54,31 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
     return round(R * c)
 
-# =========================================
+# ======================================
 # HOME
-# =========================================
+# ======================================
 
 @app.route("/")
 def home():
 
     return render_template("index.html")
 
-# =========================================
+# ======================================
 # LOCATION API
-# =========================================
+# ======================================
 
 @app.route("/location", methods=["POST"])
 def location():
 
     try:
 
-        data = request.json
+        data = request.get_json()
 
         lat = float(data["lat"])
         lng = float(data["lng"])
         speed = float(data["speed"])
 
-        result = []
+        response_data = []
 
         for gate in gates:
 
@@ -89,61 +92,89 @@ def location():
 
             )
 
-            # =========================================
-            # GATE STATUS
-            # =========================================
+            # ======================================
+            # GATE DETECTION
+            # ======================================
 
-            if distance < 300:
+            if distance <= 300:
 
-                if speed < 3:
+                if speed <= 3:
 
                     status = "CLOSED"
-                    waiting = 1
+
+                    if gate["closed_since"] is None:
+
+                        gate["closed_since"] = time.time()
 
                 else:
 
                     status = "OPEN"
-                    waiting = 0
+
+                    gate["closed_since"] = None
 
             else:
 
-                status = "UNKNOWN"
-                waiting = 0
+                status = "NO DATA"
 
-            result.append({
+                gate["closed_since"] = None
+
+            # ======================================
+            # PREDICTION
+            # ======================================
+
+            prediction = "--"
+
+            if status == "CLOSED":
+
+                passed = int(
+                    (time.time() - gate["closed_since"]) / 60
+                )
+
+                remain = max(0, 15 - passed)
+
+                prediction = str(remain) + " mins approx"
+
+            # ======================================
+            # SAVE RESULT
+            # ======================================
+
+            response_data.append({
 
                 "name": gate["name"],
                 "distance": distance,
                 "status": status,
-                "waiting": waiting
+                "prediction": prediction
 
             })
 
         return jsonify({
 
             "success": True,
-            "gates": result
+            "gates": response_data
 
         })
 
     except Exception as e:
 
-        print(e)
+        print("ERROR:", e)
 
         return jsonify({
 
-            "success": False
+            "success": False,
+            "error": str(e)
 
         })
 
-# =========================================
+# ======================================
 # RUN
-# =========================================
+# ======================================
 
 if __name__ == "__main__":
 
     app.run(
+
         host="0.0.0.0",
         port=5000,
         debug=True
+
     )

@@ -5,11 +5,9 @@
 
 <title>Railway Gate Tracker</title>
 
-<meta name="viewport"
-content="width=device-width,
-initial-scale=1.0,
-maximum-scale=1.0,
-user-scalable=no">
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <link rel="stylesheet" href="/static/style.css">
 
@@ -21,11 +19,11 @@ user-scalable=no">
 
     <h1>Railway Gate Tracker</h1>
 
-    <!-- USER INFO -->
+    <!-- USER BOX -->
 
     <div class="user-box">
 
-        <h2>Your Info</h2>
+        <h2>Your Status</h2>
 
         <p id="locationText">
 
@@ -43,12 +41,7 @@ user-scalable=no">
 
     <!-- GATE 1 -->
 
-    <div class="gate-card clickable"
-
-        onclick="openRoute(
-            15.1514586,
-            76.8938312
-        )">
+    <div class="gate-card">
 
         <h2>Cantonment Gate</h2>
 
@@ -57,10 +50,13 @@ user-scalable=no">
             Distance: --
 
         </p>
+        <p id="users1">
+Waiting Users: 0
+</p>
 
-        <p id="waiting1">
+        <p id="prediction1">
 
-            Waiting Users: 0
+            Prediction Time: --
 
         </p>
 
@@ -70,7 +66,12 @@ user-scalable=no">
 
         </div>
 
-        <button class="route-btn">
+        <button
+        class="route-btn"
+        onclick="openRoute(
+            15.1514586,
+            76.8938312
+        )">
 
             Open Route
 
@@ -80,12 +81,7 @@ user-scalable=no">
 
     <!-- GATE 2 -->
 
-    <div class="gate-card clickable"
-
-        onclick="openRoute(
-            15.1445935,
-            76.9047562
-        )">
+    <div class="gate-card">
 
         <h2>Radio Park Gate</h2>
 
@@ -94,10 +90,13 @@ user-scalable=no">
             Distance: --
 
         </p>
+        <p id="users2">
+Waiting Users: 0
+</p>
 
-        <p id="waiting2">
+        <p id="prediction2">
 
-            Waiting Users: 0
+            Prediction Time: --
 
         </p>
 
@@ -107,7 +106,12 @@ user-scalable=no">
 
         </div>
 
-        <button class="route-btn">
+        <button
+        class="route-btn"
+        onclick="openRoute(
+            15.1445935,
+            76.9047562
+        )">
 
             Open Route
 

@@ -96,7 +96,7 @@ def location():
             # GATE DETECTION
             # ======================================
 
-            if distance <= 300:
+            if distance <= 100:
 
                 if speed <= 3:
 

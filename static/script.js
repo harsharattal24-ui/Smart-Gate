@@ -215,7 +215,7 @@ function updateLocation(){
 
             let nearGate = false;
 
-            if(d1 <= 300 || d2 <= 300){
+            if(d1 <= 100 || d2 <= 100){
 
                 nearGate = true;
             }
@@ -268,7 +268,7 @@ function updateLocation(){
 
             let status1 = "NO DATA";
 
-            if(d1 <= 300){
+            if(d1 <= 100){
 
                 if(speed <= 3){
 
@@ -354,7 +354,7 @@ function updateLocation(){
 
             let status2 = "NO DATA";
 
-            if(d2 <= 300){
+            if(d2 <= 100){
 
                 if(speed <= 3){
 

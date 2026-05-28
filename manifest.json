@@ -1,24 +1,13 @@
 {
-  "name": "Railway Gate Tracker",
-  "short_name": "GateTracker",
-  "description": "Live railway gate tracking system with GPS and real-time gate status.",
-  "start_url": "/",
-  "display": "standalone",
   "background_color": "#081120",
-  "theme_color": "#2563eb",
-  "orientation": "portrait",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Railway Gate Tracker",
+  "orientation": "any",
   "scope": "/",
-  "lang": "en",
-  "icons": [
-    {
-      "src": "/static/Icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "short_name": "Gate Tracker",
+  "start_url": "/",
+  "theme_color": "#2563eb",
+  "description": "Live railway gate tracking system with GPS and real time gate status and railway safety",
+  "id": "Railway Gate"
 }

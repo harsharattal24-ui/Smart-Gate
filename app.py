@@ -5,6 +5,12 @@ import time
 app = Flask(__name__)
 
 # ======================================
+# LIVE WEBSITE USERS
+# ======================================
+
+website_users = {}
+
+# ======================================
 # GATE DATA
 # ======================================
 
@@ -25,6 +31,8 @@ gates = [
     }
 
 ]
+
+
 
 # ======================================
 # DISTANCE FUNCTION
@@ -164,6 +172,55 @@ def location():
             "error": str(e)
 
         })
+        
+# ======================================
+# LIVE USERS API
+# ======================================
+
+@app.route("/live-users", methods=["POST"])
+def live_users():
+
+    try:
+
+        data = request.get_json()
+
+        user_id = data["user_id"]
+
+        # SAVE USER TIME
+
+        website_users[user_id] = time.time()
+
+        # REMOVE INACTIVE USERS
+
+        remove_users = []
+
+        for uid in website_users:
+
+            if time.time() - website_users[uid] > 15:
+
+                remove_users.append(uid)
+
+        for uid in remove_users:
+
+            del website_users[uid]
+
+        return jsonify({
+
+            "success": True,
+
+            "count": len(website_users)
+
+        })
+
+    except Exception as e:
+
+        return jsonify({
+
+            "success": False,
+
+            "error": str(e)
+
+        })        
 
 # ======================================
 # RUN

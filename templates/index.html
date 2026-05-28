@@ -3,27 +3,53 @@
 
 <head>
 
-<title>Railway Gate Tracker</title>
+<title>🚦 Railway Gate Tracker</title>
 
 <meta
 name="viewport"
-content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+content="
+width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
 
-<link rel="stylesheet" href="/static/style.css">
+<link
+rel="stylesheet"
+href="/static/style.css">
 
 </head>
 
 <body>
 
+<div id="loader">
+
+    <div class="spinner"></div>
+
+</div>
+
 <div class="container">
 
-    <h1>Railway Gate Tracker</h1>
+    <!-- TITLE -->
 
-    <!-- USER BOX -->
+    <h1 class="main-title">
 
-    <div class="user-box">
+        🚦 RAILWAY GATE TRACKER
 
-        <h2>Your Status</h2>
+    </h1>
+
+    <!-- CLOCK -->
+
+    <h2 id="clock"></h2>
+
+    <!-- USER STATUS -->
+
+    <div class="user-box glass-card">
+
+        <h2>
+
+            👤 Your Status
+
+        </h2>
 
         <p id="locationText">
 
@@ -33,44 +59,60 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 
         <p id="speedText">
 
-            Speed: 0 km/h
+            🚶 Speed: 0 km/h
 
         </p>
+        
+        <p id="liveUsers">
+
+    🌐 Live Users: 0
+    
+    </p>
 
     </div>
 
     <!-- GATE 1 -->
 
-    <div class="gate-card">
+    <div class="gate-card glass-card">
 
-        <h2>Cantonment Gate</h2>
+        <h2>
+
+            🚧 Cantonment Gate
+
+        </h2>
 
         <p id="distance1">
 
-            Distance: --
+            📍 DISTANCE: --
 
         </p>
+
         <p id="users1">
-Waiting Users: 0
-</p>
+
+            Waiting Users: 0
+
+        </p>
 
         <p id="prediction1">
 
-            Prediction Time: --
+            🚧 Closed At: --
 
         </p>
 
-        <div id="status1" class="status unknown">
+        <div
+        id="status1"
+        class="status unknown">
 
-            NO DATA
+            ⚪ NO DATA
 
         </div>
 
         <button
         class="route-btn"
+
         onclick="openRoute(
-            15.1514586,
-            76.8938312
+        15.1514586,
+        76.8938312
         )">
 
             Open Route
@@ -81,36 +123,46 @@ Waiting Users: 0
 
     <!-- GATE 2 -->
 
-    <div class="gate-card">
+    <div class="gate-card glass-card">
 
-        <h2>Radio Park Gate</h2>
+        <h2>
+
+            🚧 Radio Park Gate
+
+        </h2>
 
         <p id="distance2">
 
-            Distance: --
+            📍 DISTANCE: --
 
         </p>
+
         <p id="users2">
-Waiting Users: 0
-</p>
+
+            Waiting Users: 0
+
+        </p>
 
         <p id="prediction2">
 
-            Prediction Time: --
+            🚧 Closed At: --
 
         </p>
 
-        <div id="status2" class="status unknown">
+        <div
+        id="status2"
+        class="status unknown">
 
-            NO DATA
+            ⚪ NO DATA
 
         </div>
 
         <button
         class="route-btn"
+
         onclick="openRoute(
-            15.1445935,
-            76.9047562
+        15.1445935,
+        76.9047562
         )">
 
             Open Route
@@ -124,4 +176,5 @@ Waiting Users: 0
 <script src="/static/script.js"></script>
 
 </body>
+
 </html>

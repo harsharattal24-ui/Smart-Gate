@@ -1,6 +1,7 @@
 {
   "name": "Railway Gate Tracker",
   "short_name": "GateTracker",
+  "description": "Live railway gate tracking system with GPS and real-time gate status.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#081120",
@@ -8,7 +9,6 @@
   "orientation": "portrait",
   "scope": "/",
   "lang": "en",
-  "description": "Live Railway Gate Tracking System",
   "icons": [
     {
       "src": "/static/Icon-192.png",

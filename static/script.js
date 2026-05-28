@@ -15,17 +15,111 @@ const gates = [
 ];
 
 // =====================================
+// LIVE USER ID
+// =====================================
+
+let liveUserId =
+localStorage.getItem("live_user_id");
+
+if(!liveUserId){
+
+    liveUserId =
+    Math.random().toString(36).substring(2);
+
+    localStorage.setItem(
+        "live_user_id",
+        liveUserId
+    );
+}
+
+// =====================================
+// LIVE USERS
+// =====================================
+
+function updateLiveUsers(){
+
+fetch("/live-users",{
+
+    method:"POST",
+
+    headers:{
+        "Content-Type":"application/json"
+    },
+
+    body:JSON.stringify({
+
+        user_id:liveUserId
+
+    })
+
+})
+
+.then(response => response.json())
+
+.then(data => {
+
+    if(data.success){
+
+        const liveBox =
+        document.getElementById(
+            "liveUsers"
+        );
+
+        if(liveBox){
+
+            liveBox.innerHTML =
+
+            "🌐 Live Users: " +
+            data.count;
+        }
+    }
+
+})
+
+.catch(error => {
+
+    console.log(error);
+
+});
+
+}
+
+// =====================================
 // PREVIOUS STATUS
 // =====================================
 
 let previousStatus1 = "";
 let previousStatus2 = "";
 
+let gate1ClosedTime = "--";
+let gate1OpenedTime = "--";
+
+let gate2ClosedTime = "--";
+let gate2OpenedTime = "--";
+
+// =====================================
+// CLOCK
+// =====================================
+
+setInterval(function(){
+
+    const now = new Date();
+
+    document.getElementById(
+        "clock"
+    ).innerHTML =
+
+    now.toLocaleTimeString();
+
+},1000);
+
 // =====================================
 // DISTANCE FUNCTION
 // =====================================
 
-function calculateDistance(lat1, lon1, lat2, lon2){
+function calculateDistance(
+lat1, lon1, lat2, lon2
+){
 
     const R = 6371000;
 
@@ -58,7 +152,7 @@ function calculateDistance(lat1, lon1, lat2, lon2){
 }
 
 // =====================================
-// STATUS BOX + ANIMATION
+// STATUS DESIGN
 // =====================================
 
 function setStatus(id,status){
@@ -94,25 +188,6 @@ function setStatus(id,status){
 }
 
 // =====================================
-// NOTIFICATION ALERT
-// =====================================
-
-function showNotification(message){
-
-    if(Notification.permission === "granted"){
-
-        new Notification(message);
-    }
-}
-
-// REQUEST PERMISSION
-
-if(Notification.permission !== "granted"){
-
-    Notification.requestPermission();
-}
-
-// =====================================
 // OPEN ROUTE
 // =====================================
 
@@ -132,353 +207,191 @@ function openRoute(destLat,destLng){
 }
 
 // =====================================
-// MAIN LOCATION UPDATE
+// MAIN LOCATION
 // =====================================
 
 function updateLocation(){
 
-    navigator.geolocation.getCurrentPosition(
+if(!navigator.geolocation){
 
-        function(position){
+document.getElementById(
+"locationText"
+).innerHTML =
 
-            const lat =
-            position.coords.latitude;
+"❌ GPS Not Supported";
 
-            const lng =
-            position.coords.longitude;
-
-            let speed =
-            position.coords.speed || 0;
-
-            speed = speed * 3.6;
-
-            if(speed < 3){
-
-                speed = 0;
-            }
-
-            document.getElementById(
-                "speedText"
-            ).innerText =
-
-            "Speed: " +
-            speed.toFixed(2) +
-            " km/h";
-
-            // =====================================
-            // DISTANCES
-            // =====================================
-
-            const d1 =
-            calculateDistance(
-
-                lat,
-                lng,
-
-                gates[0].lat,
-                gates[0].lng
-
-            );
-
-            const d2 =
-            calculateDistance(
-
-                lat,
-                lng,
-
-                gates[1].lat,
-                gates[1].lng
-
-            );
-
-            // =====================================
-            // NEAREST GATE
-            // =====================================
-
-            let nearestGate = "";
-
-            if(d1 < d2){
-
-                nearestGate =
-                "Nearest Gate: Cantonment Gate";
-            }
-
-            else{
-
-                nearestGate =
-                "Nearest Gate: Radio Park Gate";
-            }
-
-            // =====================================
-            // USER STATUS
-            // =====================================
-
-            let nearGate = false;
-
-            if(d1 <= 100 || d2 <= 100){
-
-                nearGate = true;
-            }
-
-            let userStatus = "";
-
-            if(nearGate && speed <= 3){
-
-                userStatus =
-                "Waiting Near Gate";
-            }
-
-            else if(speed > 3){
-
-                userStatus =
-                "Moving";
-            }
-
-            else{
-
-                userStatus =
-                "Idle";
-            }
-
-            document.getElementById(
-                "locationText"
-            ).innerHTML =
-
-            "Status: " +
-
-            userStatus +
-
-            "<br><br>" +
-
-            nearestGate;
-
-            // =====================================
-            // GATE 1
-            // =====================================
-
-            document.getElementById(
-                "distance1"
-            ).innerText =
-
-            "Distance: " +
-            d1 +
-            " meters";
-
-            let users1 = 0;
-
-            let status1 = "NO DATA";
-
-            if(d1 <= 100){
-
-                if(speed <= 3){
-
-                    status1 = "CLOSED";
-
-                    users1 = 1;
-
-                    document.getElementById(
-                        "prediction1"
-                    ).innerText =
-
-                    "Prediction Time: 10 mins approx";
-                }
-
-                else{
-
-                    status1 = "OPEN";
-
-                    document.getElementById(
-                        "prediction1"
-                    ).innerText =
-
-                    "Prediction Time: --";
-                }
-
-            }
-
-            else{
-
-                document.getElementById(
-                    "prediction1"
-                ).innerText =
-
-                "Prediction Time: --";
-            }
-
-            // NOTIFICATION
-
-            if(previousStatus1 !== status1){
-
-    if(status1 === "OPEN"){
-
-        showNotification(
-            "Cantonment Gate Opened"
-        );
-    }
-
-    else if(status1 === "CLOSED"){
-
-        showNotification(
-            "Cantonment Gate Closed"
-        );
-    }
+return;
 }
 
-            previousStatus1 = status1;
+navigator.geolocation.getCurrentPosition(
 
-            setStatus(
-                "status1",
-                status1
-            );
+function(position){
 
-            document.getElementById(
-                "users1"
-            ).innerText =
+document.getElementById(
+"loader"
+).style.display = "none";
 
-            "Waiting Users: " +
-            users1;
+const lat =
+position.coords.latitude;
 
-            // =====================================
-            // GATE 2
-            // =====================================
+const lng =
+position.coords.longitude;
 
-            document.getElementById(
-                "distance2"
-            ).innerText =
+let speed =
+position.coords.speed || 0;
 
-            "Distance: " +
-            d2 +
-            " meters";
+speed = speed * 3.6;
 
-            let users2 = 0;
+if(speed < 3){
 
-            let status2 = "NO DATA";
-
-            if(d2 <= 100){
-
-                if(speed <= 3){
-
-                    status2 = "CLOSED";
-
-                    users2 = 1;
-
-                    document.getElementById(
-                        "prediction2"
-                    ).innerText =
-
-                    "Prediction Time: 10 mins approx";
-                }
-
-                else{
-
-                    status2 = "OPEN";
-
-                    document.getElementById(
-                        "prediction2"
-                    ).innerText =
-
-                    "Prediction Time: --";
-                }
-
-            }
-
-            else{
-
-                document.getElementById(
-                    "prediction2"
-                ).innerText =
-
-                "Prediction Time: --";
-            }
-
-            // NOTIFICATION
-
-            if(previousStatus2 !== status2){
-
-    if(status2 === "OPEN"){
-
-        showNotification(
-            "Radio Park Gate Opened"
-        );
-    }
-
-    else if(status2 === "CLOSED"){
-
-        showNotification(
-            "Radio Park Gate Closed"
-        );
-    }
+speed = 0;
 }
 
-            previousStatus2 = status2;
+// =====================================
+// SHOW SPEED
+// =====================================
 
-            setStatus(
-                "status2",
-                status2
-            );
+document.getElementById(
+"speedText"
+).innerHTML =
 
-            document.getElementById(
-                "users2"
-            ).innerText =
+"🚶 Speed: " +
+speed.toFixed(2) +
+" km/h";
 
-            "Waiting Users: " +
-            users2;
+// =====================================
+// DISTANCES
+// =====================================
 
-        },
+const d1 =
+calculateDistance(
 
-        function(error){
+lat,
+lng,
 
-    // LOCATION DENIED
+gates[0].lat,
+gates[0].lng
 
-    if(error.code === 1){
+);
 
-        alert(
-            "Please Allow Location Permission To Use Railway Gate Tracker"
-        );
-    }
+const d2 =
+calculateDistance(
 
-    // LOCATION UNAVAILABLE
+lat,
+lng,
 
-    else if(error.code === 2){
+gates[1].lat,
+gates[1].lng
 
-        alert(
-            "Location Not Available. Please Turn ON GPS And Location Accuracy."
-        );
-    }
+);
 
-    // TIMEOUT
+// =====================================
+// SHOW DISTANCE
+// =====================================
 
-    else if(error.code === 3){
+document.getElementById(
+"distance1"
+).innerHTML =
 
-        alert(
-            "Location Request Timed Out. Try Moving To Open Area."
-        );
-    }
+"📍 DISTANCE: " +
+d1 +
+" meters";
 
-    document.getElementById(
-        "locationText"
-    ).innerHTML =
+document.getElementById(
+"distance2"
+).innerHTML =
 
-    "⚠ GPS Not Enabled<br><br>" +
+"📍 DISTANCE: " +
+d2 +
+" meters";
 
-    "Turn ON:<br>" +
+// =====================================
+// USER STATUS
+// =====================================
 
-    "• Device Location<br>" +
+let nearestGate = "";
 
-    "• Location Accuracy<br>" +
+if(d1 < d2){
 
-    "• Internet Connection";
+nearestGate =
+"📍 Nearest Gate: CANTONMENT GATE";
+}
+
+else{
+
+nearestGate =
+"📍 Nearest Gate: RADIO PARK GATE";
+}
+
+document.getElementById(
+"locationText"
+).innerHTML =
+
+"🟢 GPS CONNECTED" +
+
+"<br><br>" +
+
+nearestGate;
+
+// =====================================
+// GATE STATUS
+// =====================================
+
+let status1 = "NO DATA";
+let status2 = "NO DATA";
+
+if(d1 <= 100){
+
+status1 = speed <= 3
+? "CLOSED"
+: "OPEN";
+}
+
+if(d2 <= 100){
+
+status2 = speed <= 3
+? "CLOSED"
+: "OPEN";
+}
+
+setStatus(
+"status1",
+status1
+);
+
+setStatus(
+"status2",
+status2
+);
+
 },
 
-        {
+function(error){
 
-            enableHighAccuracy:true,
-            timeout:15000,
-            maximumAge:0
+document.getElementById(
+"loader"
+).style.display = "none";
 
-        }
+document.getElementById(
+"locationText"
+).innerHTML =
 
-    );
+"❌ GPS ERROR";
+
+console.log(error);
+
+},
+
+{
+
+enableHighAccuracy:false,
+timeout:10000,
+maximumAge:5000
+
+}
+
+);
+
 }
 
 // =====================================
@@ -487,6 +400,14 @@ function updateLocation(){
 
 updateLocation();
 
-// REAL TIME UPDATE
+setInterval(
+updateLocation,
+3000
+);
 
-setInterval(updateLocation,3000);
+updateLiveUsers();
+
+setInterval(
+updateLiveUsers,
+5000
+);
